@@ -1,0 +1,409 @@
+<html>
+<head>
+<style id="tlx_style">
+</style>
+<script>
+p=String.prototype,p.r=p.replace,cN=0,P=Proxy,h={get:(t,k)=>{if(typeof t[k]!='object')return t[k];t[k]._p=t;return new P(t[k],h);},set:(t,k,v)=>{t[k]=v;if(k=='_p')return!0;do{if("cb"in t)t.cb.forEach(f=>{if(!!f)f(v,k,t)});t=t._p}while(!!t);return!0}}
+class L{constructor(t={},z=[]){if(typeof t!="object")t={v:t};t.cb=z;return new P(t,h)}}class T{constructor(c={w:``,f:{}},z=[]){if(!c.f.id)c.f.id=`tlx_${cN++}`;z.push(()=>{T.r(`#${c.f.id}`,c)});return new L(c,z)}static r(s,c){document.querySelectorAll(s).forEach((e)=>{e.innerHTML=this.l(c)})}static b(o,a,b){return this.l(o?a:b)}static t(l,a){return a.map((e)=>{return`${!!l[0]?`<${l[0]}>`:``}${!e.map?e:this.t(l.slice(1),e)}${!!l[0]?`</${l[0]}>`:``}`}).join('')}static l(c){return eval('`'+c.w.r(/@|{\$/g,f=>({'@':'c.f.','{$':'${'})[f]).r(/{</g,'${T.b').r(/{#/g,'${T.t').r(/{>/g,'${T.l')+'`')}}
+Tilux=T;T.render=T.r;Lux=L
+</script>
+<script>
+
+var a_variable = 3;
+
+var candles = {
+	style: new Tilux({
+		w:`
+			div .page {
+				font-size: 16px;
+			}
+
+			div .nav {
+				position: fixed;
+				top: 0;
+				right: 0;
+				left: 0;
+				bottom: auto;
+				height: 64px;
+				background-color: #aaa;
+			}
+
+			h1, h2, h3 {
+				margin-top: 2em;
+				border-bottom: 2px solid lightgrey;
+			}
+
+			ul, dl {
+			    list-style-position: inside;
+			}
+
+			dd {
+				padding-bottom: 1em;
+			}
+
+			table, tr {
+				border: 1px solid;
+			}
+
+			p, pre, .candle {
+				margin-top: 1em;
+				margin-left: 32px;
+			}
+
+			pre, .candle {
+				tab-size: 4;
+				padding: 16px;
+			}
+
+			pre {
+				background-color: LightGrey;
+				border-left: 3px solid grey;
+				box-shadow: -2px 2px 15px -3px grey inset;
+			}
+
+			.candle {
+				color: {$@f_color};
+				background-color: {$@b_color};
+				border-left: 3px solid blue;
+				display: block;
+				padding: 16px;
+				box-shadow: 2px 2px 15px -3px darkblue;
+			}
+		`,
+		f:{
+			id: 'tlx_style',
+			f_color: 'DarkBlue',
+			b_color: 'LightSkyBlue',
+		}
+	}),
+
+	mainPage: new Tilux({
+		w: `
+			{>(candles.tiluxPage)}
+			{>(candles.luxPage)}
+		`,
+		f: {
+			id: "tlx_main",
+		}
+	}),
+
+	tiluxPage: new Tilux({
+		w: `
+			{>(candles.tIntro)}
+			{>(candles.vInsertion)}
+			{>(candles.tFunctions)}
+			{>(candles.tBranch)}
+			{>(candles.tLists)}
+			{>(candles.tTables)}
+			{>(candles.tStyle)}
+		`,
+		f: {}
+	}),
+
+	react: new Tilux({
+		w:`
+			Wax is a string or template literal which can be rendered with reactive <b>{$@data}</b>
+			`,
+		f:{
+			id: 'react',
+			data:'flame data'}
+	}),
+
+	tIntro: new Tilux({
+		w:`
+		<div id="tlx-Tilux" class="page">
+			<h1>Tilux ~ Template Literal eXtensions</h1>
+			<h4>A tiny (<900 bytes) reactive data templating engine written in vanilla ES6</h4>
+			<p>ATTENTION: This code is currently only for proof of concept.
+			</p>
+			<p>
+			Tilux creates dynamic string and template literals by rendering javascript objects called <strong>Candles</strong>
+			which contain template <strong>wax</strong> (w) and a <strong>flame</strong> (f) of reactive data. Candles are then
+			rendered to the DOM by passing a CSS selector and 'candle' to <code>Tilux.render('#selector', candle)</code>
+			</p>
+<pre><code>var a_candle = new Tilux({
+	w:&#96;Wax is a string or template literal which can be rendered with reactive \{&#64;data\}&#96;,
+	f:{data:'&lt;b&gt;flame data&lt;/b&gt;'}
+})
+
+Tilux.render('#my-element', a_candle);
+</code></pre>
+			<p id="react" class="candle">			
+			{>(candles.react)}
+			</p>
+			<p>
+			<input placeholder="type some flame data" onkeyup="candles.react.f.data = this.value" />
+			</p>
+		</div>`,
+		f: {}
+	}),
+
+	vInsertion: new Tilux({
+	w: `
+		<h2>Expression and Variable Insertion</h2>
+		<p>Variables can be resolved at runtime or render time in the template by wrapping the variable name:
+		</p>
+		<ul>
+		{#(['li'], [
+			"<code><b>&#36;\{expression\}</b></code> An assignment time ECMAScript expression insertion",
+			"<code><b>\{&#36;expression\}</b></code> A render time ECMAScript expression insertion",
+			"<code><b>\{&#36;&#64;var_name\}</b></code> A flame variable insertion into a wax template",
+			"<code><b>&#64;var_name</b></code> A flame variable as a function argument",
+			]
+		)}
+		</ul>
+<pre><code>var a_variable = 3;
+var a_candle = new Tilux({
+	w: 'Expressions resolved at assignment time use explicit variable referencing: \&#36;{a_candle.f.f_variable + a_variable\}.
+	    A render time expression can reference flame variables: \{&#36; &#64;f_variable + a_variable\}.'
+	f:{f_variable: 6}
+})</code></pre>
+		<div class="candle">
+			{>({
+			w: "Expressions resolved at assignment time use explicit variable referencing: ${a_variable + 6}.<br> A render time expression can reference flame variables: {$@f_variable + a_variable}.",
+			f: {f_variable: 6}
+			})}
+		</div>
+		`,
+	f: {}
+	}),
+
+	tFunctions: new Tilux({
+		w: `
+		<div id={$@id}>
+			<h2>Template Functions</h2>
+			<p>Tilux uses three template functions for template and data insertion:
+			</p>
+			<dl>
+			{#([''], [
+				"<dt><code><b>\{&gt;(a_candle)\}</b></code></dt><dd>Template insertion function</dd>",
+				"<dt><code><b>\{&lt;(bool, candle_a, candle_b)\}</b></code></dt><dd>Template branch function</dd>",
+				"<dt><code><b>\{&#35;([tags],[data])\}</b></code></dt><dd>Template recursion function</dd>"
+				]
+			)}
+			</dl>
+			<h3>Template insertion using the \{&gt;(...)\} insertion function</h3>
+			<p>Templates can be inserted and nested into other templates from externally defined candles, a candle
+			defined in the flame object or defined inline in the template itself. An inline candle must use regular
+			single or double quotes
+			</p>
+<pre><code>{&gt;(a_candle)}
+{&gt;(&#64;flame_candle)}
+{&gt;({w:"Hello \{&#64;world\}", f:{world:"World!"}})}</code></pre>
+			<h3>Nesting Templates</h3>
+			<p>Templates can be nested within other templates.
+			</p>
+<pre><code>moreWax = &#96;And this is a Level \{&#64;level\} nested template&#96;;
+tplt2 = &#96;This text has been inserted from a seperate template. \{&gt;(moreWax,\{level:2\})\}&#96;</code></pre>
+			<p class="candle">{>(tplt2)}</p>
+		</div>
+		`,
+		f: {}
+	}),
+
+	trueBranch: new Tilux({
+		w: `this candle is on the true branch`,
+		f: {}
+	}),
+
+	falseBranch: new Tilux({
+		w: `this candle is on the false branch`,
+		f: {}
+	}),
+
+	branch: new Tilux({
+		w: `
+			<div id={$@id}>
+			<h3>Logic Branching using the \{&lt;(...)\} branching function</h3>
+			<p>Template selection can be achieved by providing a boolean value and two candles to the branching function.
+			</p>
+<pre><code>var trueBranch = Tilux({w:"this candle is on the true branch",f:{}});
+var falseBranch = Tilux({w:"this candle is on the false branch",f:{}});
+...
+{&lt;(true, true_branch, false_branch)}
+{&lt;(false, true_branch, false_branch)}</code></pre>
+			<p class="candle">{<(@branch, candles.trueBranch, candles.falseBranch)}</p>
+			<p class="candle">{<(!@branch, candles.trueBranch, candles.falseBranch)}</p>
+			</div>
+		`,
+		f: {
+			branch: false,
+		}
+	}),
+
+	tBranch: new Tilux({
+		w:`
+			{>(candles.branch)}
+			<p>
+			<input type="checkbox" onchange="candles.branch.f.branch = this.checked"/>Toggle Branch
+			</p>
+		`,
+		f: {}
+	}),
+
+	tList: new Tilux({
+		w: `
+			<div id={$@id}>
+			<h3>Lists using the \{&#35;(...)\} recursion function</h3>
+			<p>Lists of data and templates can be rendered using the recursive insertion function which takes an array of tags
+			to wrap elements in an array of data or templates. 
+			</p>
+<pre><code>{&#35;(['li'],["first","second","third"])}</code></pre>
+			<ul class="candle">
+			{#(['li'], @arr)}
+			</ul>
+			</div>
+		`,
+		f: {
+			arr: ["first","second","third"],
+			input: ''
+		}	
+	}),
+
+	tLists: new Tilux({
+		w: `
+			{>(candles.tList)}
+			<p>
+			<input placeholder="Add something" onkeyup="candles.tList.f.input = this.value" />
+			<button onclick="candles.tList.f.arr.push(candles.tList.f.input)">Add</button>
+			</p>	
+		`,
+		f: {}		
+	}),
+
+	tTables: new Tilux({
+		w: `
+			<h3>Tables using the \{&#35;(...)\} recursion function</h3>
+			<p><i>n</i> dimensional elements can be constructed using the recursion function by providing an array of
+			<i>n</i> number of tags and nested arrays of data to render.
+<pre><code>{&#35(['tr','td'],[["first",1,2,3],["second",4,5,6],["third",7,8,9]])}</code></pre>
+			<table class="candle">
+			{#(['tr','td'],[["first",1,2,3],["second",4,5,6],["third",7,8,9]])}
+			</table>
+		`,
+		f: {}
+	}),
+
+	tStyle: new Tilux ({
+		w: `
+		<h3>Used to Set CSS</h3>
+		<p>Tilux can even be used to set CSS variables<p>
+<pre><code>&lt;style id="tlx_style"&gt;&lt;/style&gt;
+...
+var candleStyle = new Tilux({
+	w: &#96;
+		color: {&#36;&#64;f_color};
+		background-color: {&#36;&#64;b_color};
+		border-left: 3px solid blue;
+		display: block;
+		padding: 16px;
+		box-shadow: 2px 2px 15px -3px darkblue;
+	&#96;,
+	f:{
+		id: 'tlx_style',
+		f_color: 'DarkBlue',
+		b_color: 'LightSkyBlue',
+	}
+}</code></pre>
+		<div class="candle">
+		<button onclick="{$@bc} = 'LightSkyBlue'; {$@fc} = 'DarkBlue'">LightSkyBlue</button>
+		<button onclick="{$@bc} = 'springgreen', {$@fc} = 'DarkGreen'">SpringGreen</button>
+		<button onclick="{$@bc} = 'tomato', {$@fc} = 'Khaki'">Tomato</button>
+		</div>
+		`,
+		f: {
+			bc:'candles.style.f.b_color',
+			fc:'candles.style.f.f_color',
+		}
+	}),
+
+	luxPage: new Tilux({
+		w: `
+			{>(candles.lIntro)}
+			{>(candles.lCallbacks)}
+		`,
+		f: {}
+	}),
+
+	lIntro: new Tilux({
+		w:`
+			<h1>Lux ~ A Reactive Proxy</h1>
+			<p>The Lux proxy handler is at the core of the Tilux reactive data engine. Any data can be made
+			reactive by creating a Lux proxy which use the exotic ES6 Proxy object to capture and modify
+			get and set behaviour upon a target object. All members and nested members of a Lux target object
+			are reactive and can trigger callback functions when set.
+			</p>
+			<p>A primitive value passed to the <code>Lux()</code> constructor will create a Proxy with the value in the
+			target object's <code>value</code> key.
+			</p>
+<pre><code>> l = new Lux("Hello Tilux")
+< Proxy {value: "Hello Tilux", cbs: Array(0)}
+> l.value
+< "Hello Tilux"</code></pre>
+			<p>An object passed to Lux() will return a reactive proxy of that object.
+			</p>
+<pre><code>> l = new Lux({foo:"bar"});
+< Proxy {foo: "bar", cbs: Array(0)}
+> l.foo
+< "bar"</code></pre>
+		`,
+		f: {}
+	}),
+
+	lCallbacks: new Tilux({
+		w: `
+			<h3>Lux Callbacks</h3>
+			<p>Lux target objects have a <code>_cbs</code> array. Functions in the callback array will be called
+			synchronously and in sequence when any element of the Lux target is set. If a nested member of a Lux
+			target contains a callback array, functions in that array will be called before the parent callbacks.
+			</p>
+<pre><code>> l = new Lux();
+< Proxy {cbs: Array(0)}
+> cbId = l.cbs.push((value, key, target)=>{console.log(target.key.value, " world!")})
+< 1
+> l.a = "Hello"</code></pre>
+			<p>A single object can be the target for multiple Lux proxies.  Each proxy can have its own cbs array
+			to trigger distinct side effects when setting an object key through one proxy compared to another. Setting a
+			key on the object directly does not trigger any cbs.
+			</p>
+<pre><code>> o = {b:""}
+> l = new Lux(o, [()=>console.log(target.key.value, " world!")]);
+< Proxy {b: "", cbs: Array(1) }
+> m = new Lux(o, [()=>console.log(target.key.value, " Mars!")]);
+< Proxy {b: "", cbs: Array(1)}
+> l.b = "Hello"</code></pre>
+		`,
+		f: {}
+	}),
+}
+
+
+
+var anotherCandle = {
+	w:` And this is a Level {$@level} nested template`,
+	f:{level:2}
+};
+
+var tplt2 = {
+	w:`This text has been inserted from a seperate template. {>(anotherCandle)}`,
+	f:{}
+};
+
+Tilux.render('#tlx_style', candles.style);
+
+</script>
+</head>
+<body id="body" style="font-family: sans-serif;" onload="Tilux.render('#candles',candles.mainPage)">
+<div id="TiLux-Logo" style="display: inline-block;">
+	<style>div .logo {display: inline-block;}</style>
+<!-- Copyright 2017 Darryl Morris. All rights reserved -->
+  <div class="logo" style="font: 5rem 'Lucida Console', Monaco, monospace; color: orange;">
+    <div class="logo"  style="background-color: darkblue; padding: 0.3em;	border-radius: 40% 20% 30% 30%;">
+      <div class="logo"  style="transform: rotate(-90deg);">C<div class="logo" style="color:yellow;">~</div></div>
+    </div>
+    <div class="logo" style="color: darkblue; font-weight: bold; font-size:1.5em; padding: 0; border-radius: 10%;">T<div class="logo" style="color:yellow; transform: rotate(-90deg);">~</div>L<div class="logo" style="color:orange; transform: rotate(-90deg);">C</div><div class="logo">X</div></div>
+</div>
+<div id="candles">
+</div>
+</body>
+<html>
