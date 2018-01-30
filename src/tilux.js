@@ -1,11 +1,15 @@
-/******************************************************************************\
+/*******************************************************************\
 
-file:   tilux.js
-ver:    0.0.1_alpha
-updated:23 Jan 2018
-author: Darryl Morris (o0ragman0o)
+Tilux JS 
+file:	tilux.js
+ver:	0.0.2
+author: Darryl Morris
 email:  o0ragman0o AT gmail.com
+updated:29-Jan-2018
+copyright: 2018
 
+Tilux is a string template engine with reactive data binding suited 
+for building client side web applications. 
 
 This software is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,41 +17,47 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 See MIT Licence for further details.
 <https://opensource.org/licenses/MIT>.
 
-Release Notes
--------------
-* First public POC release
+Release Notes:
+* Added 'has' trap to prevent self nested proxies
 
-TODO
+TODO:
 ----
 * investigate scope polution (particularly in min.js)
 * user input sanitation (to lock down 'eval')
-* explore recursive behaviour (running into to memory issues?)
 * implement revokation
+* explore `eval()` exploits
 
-\******************************************************************************/
-
-
+\*******************************************************************/
+	
 var candleNum = 0;
 
 const nullTplt={w:'',f:{}}
 
 // Proxy handler for nested reactive objects
-var handler = {
-	get: (target ,key) => {
-		if (typeof target[key] !== 'object') return target[key];
-		target[key]._p = target;
-		return new Proxy(target[key], handler);
+var luxHandler = {
+	get: (target, key) => {
+		let ret = target[key];
+		if (typeof ret !== 'object') return ret;
+		ret._p = target;
+		if ('__isLux' in ret) return ret;
+		return new Proxy(ret, luxHandler);
 	},
+
 	set: (target, key, value) => {
 		target[key] = value;
-		if(key === '_p' || key === '_cbs') return true;
+		if(key === '_p' || key === 'cbs') return true;
 		do {
-			if("_cbs" in target) target._cbs.forEach(
+			if("cbs" in target) target.cbs.forEach(
 				cb => { if(!!cb) cb(value, key, target); }
 			);
 			target = target._p;
 		} while(!!target);
 		return true;
+	},
+
+	has: (target, key) => {
+		if (key === "__isLux") return true;
+		return key in target;
 	}
 }
 
@@ -55,8 +65,8 @@ var handler = {
 class Lux {
 	constructor(target = {}, cbs = []) {
 		if(typeof target !== "object") target = {value: target};
-		target._cbs = cbs;
-		return new Proxy(target, handler);
+		target.cbs = cbs;
+		return new Proxy(target, luxHandler);
 	}
 }
 
@@ -71,7 +81,7 @@ class Tilux {
 	// Renders a template to a collection of HTML elements
 	static render(s,c) {
 		document.querySelectorAll(s).forEach(
-			(e)=>{ e.innerHTML= this.l(c); }
+			(e)=>{ e.outerHTML= this.l(c); }
 		)
 	}
 
