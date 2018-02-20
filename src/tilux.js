@@ -2,43 +2,36 @@
 
 Tilux JS 
 file:	tilux.js
-ver:	0.0.2
+ver:	0.0.3
 author: Darryl Morris
 email:  o0ragman0o AT gmail.com
-updated:29-Jan-2018
+updated:16-Feb-2018
 copyright: 2018
 
-Tilux is a string template engine with reactive data binding suited 
-for building client side web applications. 
-
-This software is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-See MIT Licence for further details.
-<https://opensource.org/licenses/MIT>.
-
 Release Notes:
-* Added 'has' trap to prevent self nested proxies
+* Added 'sparks' for event handling
 
 TODO:
-----
-* investigate scope polution (particularly in min.js)
-* user input sanitation (to lock down 'eval')
-* implement revokation
-* explore `eval()` exploits
+Test `eval()` exploits
 
 \*******************************************************************/
 	
-var candleNum = 0;
+let candleNum = 0;
 
-const nullTplt={w:'',f:{}}
+let sparks = [];
 
 // Proxy handler for nested reactive objects
-var luxHandler = {
+const luxHandler = {
+	has: (target, key) => {
+		if (key === "__isLux") return true;
+		return key in target;
+	},
+
 	get: (target, key) => {
+		if (key === '_p') return;
 		let ret = target[key];
 		if (typeof ret !== 'object') return ret;
-		ret._p = target;
+		if (!key.startsWith('s_')) ret._p = target;
 		if ('__isLux' in ret) return ret;
 		return new Proxy(ret, luxHandler);
 	},
@@ -47,6 +40,7 @@ var luxHandler = {
 		target[key] = value;
 		if(key === '_p' || key === 'cbs') return true;
 		do {
+			// run callbacks
 			if("cbs" in target) target.cbs.forEach(
 				cb => { if(!!cb) cb(value, key, target); }
 			);
@@ -54,11 +48,6 @@ var luxHandler = {
 		} while(!!target);
 		return true;
 	},
-
-	has: (target, key) => {
-		if (key === "__isLux") return true;
-		return key in target;
-	}
 }
 
 // A reactive object class
@@ -72,17 +61,37 @@ class Lux {
 
 // The 'candle' template rendering class
 class Tilux {
-	constructor(candle = {w:``, f:{}}, cbs = []) {
-		if(candle.f.id === undefined) candle.f.id = `tlx_${candleNum++}`;
+	constructor(candle = {}, cbs = []) {
+		this.w = candle.w || '';
+		this.f = candle.f || {};
+		this.s = candle.s || undefined;
+		this.f.id = this.f.id || `tlx_${candleNum++}`;
 		cbs.push(()=>{Tilux.render(`#${candle.f.id}`, candle);})
-		return new Lux(candle, cbs);
+		return new Lux(this, cbs);
+	}
+
+	gaze(lux){
+		lux.cbs.push(()=>{Tilux.render(`#${this.f.id}`, this)})
 	}
 
 	// Renders a template to a collection of HTML elements
 	static render(s,c) {
-		document.querySelectorAll(s).forEach(
-			(e)=>{ e.outerHTML= this.l(c); }
-		)
+		// render as HTML to DOM
+		document.querySelectorAll(s).forEach( e => { 
+			sparks.push([]);
+			e.outerHTML = this.l(c);
+		});
+		// Required to run selection again as the DOM doesn't immediately register the outerHTML change 
+		document.querySelectorAll(s).forEach( e => {
+			sparks.pop().forEach( spark => {
+				for(let k in spark) {
+					e.querySelectorAll(k).forEach( chld => {
+						for(let ev in spark[k])
+							chld.addEventListener(ev, spark[k][ev]);
+					});
+				}
+			});
+		});
 	}
 
 	// Binary template selector
@@ -98,6 +107,9 @@ class Tilux {
 	
 	// Template literal renderer
 	static l(c) {
+		// case primitives to candle
+		if(typeof c !== 'object') c = {w:c || ''};
+		if(c.s) sparks[sparks.length - 1].push(c.s);
 		return eval(
 			'`'
 			+ c.w

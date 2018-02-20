@@ -2,8 +2,8 @@
 <head>
 <style id="tlx_style">
 </style>
-<!-- <script type="text/javascript" src="src/tilux.js"></script> -->
-<script type="text/javascript" src="src/tilux.min.js"></script>
+<script type="text/javascript" src="src/tilux.js"></script>
+<!-- <script type="text/javascript" src="src/tilux.min.js"></script> -->
 
 <script>
 
@@ -141,7 +141,7 @@ Tilux.render('#my-element', a_candle);
 </code></pre>
 			{>(candles.react)}
 			<p>
-			<input placeholder="type some flame data" onkeyup="candles.react.f.data = this.value" />
+			<input placeholder="type some flame data" onkeyup="candles.react.f.data = this.value.sanitize()" />
 			</p>
 		</div>`,
 		f: {
