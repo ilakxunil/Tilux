@@ -2,23 +2,25 @@
 
 Tilux JS 
 file:	tilux.js
-ver:	0.0.3
+ver:	0.0.4
 author: Darryl Morris
 email:  o0ragman0o AT gmail.com
-updated:16-Feb-2018
+updated:2-April-2018
 copyright: 2018
 
 Release Notes:
-* Added 'sparks' for event handling
+* Rolled parser into one replace function
+* Using 'Function' constructor instead of 'eval'
 
 TODO:
-Test `eval()` exploits
 
 \*******************************************************************/
 	
 let candleNum = 0;
 
 let sparks = [];
+
+const t_rplc = {'@':'c.f.','{$':'${','{<':'${Tilux.b','{#':'${Tilux.t','{>':'${Tilux.l'};
 
 // Proxy handler for nested reactive objects
 const luxHandler = {
@@ -107,17 +109,9 @@ class Tilux {
 	
 	// Template literal renderer
 	static l(c) {
-		// case primitives to candle
+		// cast primitives to candle
 		if(typeof c !== 'object') c = {w:c || ''};
 		if(c.s) sparks[sparks.length - 1].push(c.s);
-		return eval(
-			'`'
-			+ c.w
-			.replace(/@|{\$/g, (f)=>({'@':'c.f.','{$':'${'})[f])
-			.replace(/{</g, '${Tilux.b')
-			.replace(/{#/g, '${Tilux.t')
-			.replace(/{>/g, '${Tilux.l')
-			+ '`'
-			)
+		return Function('c', `"use strict"; return \`${c.w.replace(/@|{\$|{<|{#|{>/g, f=>t_rplc[f])}\`;`)(c)
 	}
 }
